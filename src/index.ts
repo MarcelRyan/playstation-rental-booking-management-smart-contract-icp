@@ -347,6 +347,22 @@ export default Canister({
         playstations.insert(updatedPlaystation.id, updatedPlaystation)
 
         return Ok(updatedPlaystation)
+    }),
+
+    getRentLogs: query([], Vec(RentLogPayload), () => {
+        return rentlogs.values()
+    }),
+    
+    getRentLogById: query([Principal], Result(RentLogPayload, Error), (id) => {
+        const rentLogOpt = rentlogs.get(id);
+
+        if("None" in rentLogOpt) {
+            return Err({
+                NotFound: `Rent Log with that id doesn't exist`
+            })
+        }
+
+        return Ok(rentLogOpt.Some);
     })
 });
 
