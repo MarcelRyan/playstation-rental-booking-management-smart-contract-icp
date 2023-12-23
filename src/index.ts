@@ -25,37 +25,32 @@ const RenterPayload = Record({
     name: text,
     contactInfo: text,
 });
-type RenterPayload = typeof RenterPayload.tsType
 
 const GamePayload = Record({
     id: Principal,
     title: text,
     description: text,
     developers: text,
-})
-type GamePayload = typeof GamePayload.tsType
+});
 
 const PlayStationPayload = Record({
     id: Principal,
     games: Vec(Principal),
     available: bool,
 });
-type PlayStationPayload = typeof PlayStationPayload.tsType
 
 const RentLogPayload = Record({
     id: Principal,
     renterId: Principal,
     playstationId: Principal,
     createdAt: nat64,
-})
-type RentLogPayload = typeof RentLogPayload.tsType
+});
 
-const Error = Variant({
+const Error = Record({
     NotFound: text,
     InvalidPayload: text,
     PlayStationNotAvailable: text,
-})
-type Error = typeof Error.tsType
+});
 
 let renters = StableBTreeMap<Principal, RenterPayload>(0);
 let games = StableBTreeMap<Principal, GamePayload>(1);
@@ -66,7 +61,7 @@ export default Canister({
 
     createRenter: update([text, text], Result(RenterPayload, Error), (name, contactInfo) => {
         if (!name || !contactInfo) {
-            return Err({ InvalidPayload: `Either the name or the contact info is missing!`})
+            return Err({ InvalidPayload: `Either the name or the contact info is missing!` });
         }
 
         const id = generateId();
@@ -76,7 +71,7 @@ export default Canister({
             contactInfo
         };
 
-        renters.insert(renter.id, renter)
+        renters.insert(renter.id, renter);
 
         return Ok(renter);
     }),
@@ -87,7 +82,7 @@ export default Canister({
         if ('None' in renterOpt) {
             return Err({
                 NotFound: `Renter with that id doesn't exist`
-            })
+            });
         }
 
         return Ok(renterOpt.Some);
@@ -103,7 +98,7 @@ export default Canister({
         if ('None' in renterOpt) {
             return Err({
                 NotFound: `Renter with that id doesn't exist`
-            })
+            });
         }
 
         const renter = renterOpt.Some;
@@ -117,24 +112,24 @@ export default Canister({
         if (!title || !description || !developers) {
             return Err({
                 InvalidPayload: `You must enter all the informations needed!`
-            })
+            });
         }
         
-        const id = generateId()
+        const id = generateId();
         const game: GamePayload = {
             id,
             title,
             description,
             developers
-        }
+        };
 
-        games.insert(game.id, game)
+        games.insert(game.id, game);
 
         return Ok(game);
     }),
 
     readGames: query([], Vec(GamePayload), () => {
-        return games.values()
+        return games.values();
     }),
 
     readGameById: query([Principal], Result(GamePayload, Error), (id) => {
@@ -143,7 +138,7 @@ export default Canister({
         if ('None' in gameOpt) {
             return Err({
                 NotFound: `Game with that id doesn't exist`
-            })
+            });
         }
 
         return Ok(gameOpt.Some);
@@ -155,11 +150,10 @@ export default Canister({
         if ('None' in gameOpt) {
             return Err({
                 NotFound: `Game with that id doesn't exist`
-            })
+            });
         }
 
-        const game = gameOpt.Some
-
+        const game = gameOpt.Some;
 
         // Also delete the game from all the playstations that have the game
         playstations.values().forEach((playstation) => {
@@ -169,12 +163,12 @@ export default Canister({
                     (gameId) => 
                         gameId.toText() !== game.id.toText()
                 )
-            }
+            };
 
-            playstations.insert(updatedPlaystation.id, updatedPlaystation)
-        })
+            playstations.insert(updatedPlaystation.id, updatedPlaystation);
+        });
 
-        games.remove(id)
+        games.remove(id);
 
         return Ok(game);
     }),
@@ -186,9 +180,9 @@ export default Canister({
             id,
             games,
             available: true
-        }
+        };
 
-        playstations.insert(playstation.id, playstation)
+        playstations.insert(playstation.id, playstation);
 
         return Ok(playstation);
     }),
@@ -198,15 +192,8 @@ export default Canister({
     }),
 
     readAvailablePlaystations: query([], Vec(PlayStationPayload), () => {
-        let availablePlaystations: PlayStationPayload[] = []
-
-        playstations.values().forEach((playstation) => {
-            if (playstation.available) {
-                availablePlaystations = [...availablePlaystations, playstation]
-            }
-        })
-
-        return availablePlaystations
+        const availablePlaystations = playstations.values().filter((playstation) => playstation.available);
+        return availablePlaystations;
     }),
 
     deletePlaystation: update([Principal], Result(PlayStationPayload, Error), (id) => {
@@ -215,12 +202,12 @@ export default Canister({
         if ('None' in playstationOpt) {
             return Err({
                 NotFound: `Playstation with that id doesn't exist`
-            })
+            });
         }
 
-        const playstation = playstationOpt.Some
+        const playstation = playstationOpt.Some;
 
-        playstations.remove(id)
+        playstations.remove(id);
 
         return Ok(playstation);
     }),
@@ -231,25 +218,25 @@ export default Canister({
         if ('None' in playstationOpt) {
             return Err({
                 NotFound: `Playstation with that id doesn't exist`
-            })
+            });
         }
 
-        const playstation = playstationOpt.Some
+        const playstation = playstationOpt.Some;
 
-        let newgames = playstation.games
+        let newgames = playstation.games;
 
         games.forEach((gameId) => {
-            newgames = [...newgames, gameId]
-        })
+            newgames = [...newgames, gameId];
+        });
 
         const updatedPlaystation: PlayStationPayload = {
             ...playstation,
             games: newgames
-        }
+        };
 
-        playstations.insert(updatedPlaystation.id, updatedPlaystation)
+        playstations.insert(updatedPlaystation.id, updatedPlaystation);
 
-        return Ok(updatedPlaystation)
+        return Ok(updatedPlaystation);
     }),
 
     removeGameFromPlaystation: update([Principal, Principal], Result(PlayStationPayload, Error), (playstationId, gameId) => {
@@ -258,20 +245,20 @@ export default Canister({
         if ('None' in playstationOpt) {
             return Err({
                 NotFound: `Playstation with that id doesn't exist`
-            })
+            });
         }
 
-        const playstation = playstationOpt.Some
+        const playstation = playstationOpt.Some;
 
         const gameOpt = games.get(gameId);
 
         if ('None' in gameOpt) {
             return Err({
                 NotFound: `Game with that id doesn't exist`
-            })
+            });
         }
 
-        const game = gameOpt.Some
+        const game = gameOpt.Some;
 
         const updatedPlaystation: PlayStationPayload = {
             ...playstation,
@@ -279,9 +266,9 @@ export default Canister({
                 (gameId) => 
                     gameId.toText() !== game.id.toText()
             )
-        }
+        };
 
-        return Ok(updatedPlaystation)
+        return Ok(updatedPlaystation);
     }),
 
     rentPlaystation: update([Principal, Principal], Result(RentLogPayload, Error), (renterId, playstationId) => {
@@ -290,7 +277,7 @@ export default Canister({
         if ('None' in renterOpt) {
             return Err({
                 NotFound: `Renter with that id doesn't exist`
-            })
+            });
         }
 
         const playstationOpt = playstations.get(playstationId);
@@ -298,34 +285,34 @@ export default Canister({
         if ('None' in playstationOpt) {
             return Err({
                 NotFound: `Playstation with that id doesn't exist`
-            })
+            });
         }
 
-        const playstation = playstationOpt.Some
+        const playstation = playstationOpt.Some;
 
         const updatedPlaystation: PlayStationPayload = {
             ...playstation,
             available: false
-        }
+        };
 
-        playstations.insert(updatedPlaystation.id, updatedPlaystation)
+        playstations.insert(updatedPlaystation.id, updatedPlaystation);
 
-        const id = generateId()
+        const id = generateId();
 
         const rentLog: RentLogPayload = {
             id,
             renterId,
             playstationId,
             createdAt: ic.time()
-        }
+        };
 
-        rentlogs.insert(rentLog.id, rentLog)
+        rentlogs.insert(rentLog.id, rentLog);
 
-        return Ok(rentLog)
+        return Ok(rentLog);
     }),
 
     readRentLogs: query([], Vec(RentLogPayload), () => {
-        return rentlogs.values()
+        return rentlogs.values();
     }),
 
     makePlaystationAvailable: update([Principal], Result(PlayStationPayload, Error), (id) => {
@@ -334,32 +321,32 @@ export default Canister({
         if ('None' in playstationOpt) {
             return Err({
                 NotFound: `Playstation with that id doesn't exist`
-            })
+            });
         }
 
-        const playstation = playstationOpt.Some
+        const playstation = playstationOpt.Some;
 
         const updatedPlaystation: PlayStationPayload = {
             ...playstation,
             available: true
-        }
+        };
 
-        playstations.insert(updatedPlaystation.id, updatedPlaystation)
+        playstations.insert(updatedPlaystation.id, updatedPlaystation);
 
-        return Ok(updatedPlaystation)
+        return Ok(updatedPlaystation);
     }),
 
     getRentLogs: query([], Vec(RentLogPayload), () => {
-        return rentlogs.values()
+        return rentlogs.values();
     }),
-    
+
     getRentLogById: query([Principal], Result(RentLogPayload, Error), (id) => {
         const rentLogOpt = rentlogs.get(id);
 
-        if("None" in rentLogOpt) {
+        if ("None" in rentLogOpt) {
             return Err({
                 NotFound: `Rent Log with that id doesn't exist`
-            })
+            });
         }
 
         return Ok(rentLogOpt.Some);
