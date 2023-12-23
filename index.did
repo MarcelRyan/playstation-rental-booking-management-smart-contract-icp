@@ -1,0 +1,19 @@
+service: () -> {
+    addGameToPlaystation: (principal, vec principal) -> (variant {Ok:record {id:principal; available:bool; games:vec principal}; Err:variant {InvalidPayload:text; NotFound:text; PlayStationNotAvailable:text}});
+    createGame: (text, text, text) -> (variant {Ok:record {id:principal; title:text; description:text; developers:text}; Err:variant {InvalidPayload:text; NotFound:text; PlayStationNotAvailable:text}});
+    createPlayStation: (vec principal) -> (variant {Ok:record {id:principal; available:bool; games:vec principal}; Err:variant {InvalidPayload:text; NotFound:text; PlayStationNotAvailable:text}});
+    createRenter: (text, text) -> (variant {Ok:record {id:principal; contactInfo:text; name:text}; Err:variant {InvalidPayload:text; NotFound:text; PlayStationNotAvailable:text}});
+    deleteGame: (principal) -> (variant {Ok:record {id:principal; title:text; description:text; developers:text}; Err:variant {InvalidPayload:text; NotFound:text; PlayStationNotAvailable:text}});
+    deletePlaystation: (principal) -> (variant {Ok:record {id:principal; available:bool; games:vec principal}; Err:variant {InvalidPayload:text; NotFound:text; PlayStationNotAvailable:text}});
+    editRenterContactInfoById: (principal, text) -> (variant {Ok:record {id:principal; contactInfo:text; name:text}; Err:variant {InvalidPayload:text; NotFound:text; PlayStationNotAvailable:text}});
+    makePlaystationAvailable: (principal) -> (variant {Ok:record {id:principal; available:bool; games:vec principal}; Err:variant {InvalidPayload:text; NotFound:text; PlayStationNotAvailable:text}});
+    readAvailablePlaystations: () -> (vec record {id:principal; available:bool; games:vec principal}) query;
+    readGameById: (principal) -> (variant {Ok:record {id:principal; title:text; description:text; developers:text}; Err:variant {InvalidPayload:text; NotFound:text; PlayStationNotAvailable:text}}) query;
+    readGames: () -> (vec record {id:principal; title:text; description:text; developers:text}) query;
+    readPlayStations: () -> (vec record {id:principal; available:bool; games:vec principal}) query;
+    readRentLogs: () -> (vec record {id:principal; createdAt:nat64; playstationId:principal; renterId:principal}) query;
+    readRenterById: (principal) -> (variant {Ok:record {id:principal; contactInfo:text; name:text}; Err:variant {InvalidPayload:text; NotFound:text; PlayStationNotAvailable:text}}) query;
+    readRenters: () -> (vec record {id:principal; contactInfo:text; name:text}) query;
+    removeGameFromPlaystation: (principal, principal) -> (variant {Ok:record {id:principal; available:bool; games:vec principal}; Err:variant {InvalidPayload:text; NotFound:text; PlayStationNotAvailable:text}});
+    rentPlaystation: (principal, principal) -> (variant {Ok:record {id:principal; createdAt:nat64; playstationId:principal; renterId:principal}; Err:variant {InvalidPayload:text; NotFound:text; PlayStationNotAvailable:text}});
+}
